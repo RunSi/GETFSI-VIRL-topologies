@@ -387,7 +387,7 @@ end</entry>
         <interface netPrefixLenV4="30" ipv4="10.0.0.13" name="GigabitEthernet0/3" id="2"/>
         <interface netPrefixLenV4="30" ipv4="10.0.0.17" name="GigabitEthernet0/4" id="3"/>
     </node>
-    <node location="413,93" subtype="IOSv" type="SIMPLE" name="r114-MSMR">
+    <node location="413,93" subtype="IOSv" type="SIMPLE" name="r114-MS/MR">
         <extensions>
             <entry type="string" key="config">!
 ! Last configuration change at 12:34:39 UTC Fri Sep 25 2015
