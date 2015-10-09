@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<topology xmlns="http://www.cisco.com/VIRL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" schemaVersion="0.9" xsi:schemaLocation="http://www.cisco.com/VIRL https://raw.github.com/CiscoVIRL/schema/v0.9/virl.xsd">
+    <extensions>
+        <entry type="String" key="management_network">exclusive</entry>
+    </extensions>
+    <node ipv4="192.168.0.1" location="522,210" subtype="IOSv" type="SIMPLE" name="iosv-1">
+        <extensions>
+            <entry type="string" key="config">! IOS Config generated on 2015-10-03 13:46
+! by autonetkit_0.18.1
+!
+hostname iosv-1
+boot-start-marker
+boot-end-marker
+!
+vrf definition Mgmt-intf
+!
+ address-family ipv4
+ exit-address-family
+ !
+ address-family ipv6
+ exit-address-family
+!
+!
+!
+no aaa new-model
+!
+!
+ip cef
+ipv6 unicast-routing
+ipv6 cef
+!
+!
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+no service config
+enable password cisco
+ip classless
+ip subnet-zero
+no ip domain lookup
+line vty 0 4
+ transport input ssh telnet
+ exec-timeout 720 0
+ password cisco
+ login
+line con 0
+ password cisco
+!
+no cdp run
+!
+!
+interface Loopback0
+  description Loopback
+  ip address 192.168.0.1 255.255.255.255
+!
+interface GigabitEthernet0/0
+  description OOB Management
+  vrf forwarding Mgmt-intf
+  ! Configured on launch
+  no ip address
+  duplex full
+  speed auto
+  no shutdown
+!
+interface GigabitEthernet0/1
+  description to flat-1
+  no ip address
+  duplex full
+  speed auto
+  no shutdown
+!
+interface GigabitEthernet0/2
+  description to snat-1
+  no ip address
+  duplex full
+  speed auto
+  no shutdown
+!
+interface GigabitEthernet0/3
+  description to lxc-iperf-1
+  ip address 10.0.0.1 255.255.128.0
+  ip ospf cost 1
+  duplex full
+  speed auto
+  no shutdown
+!
+interface GigabitEthernet0/4
+  description to lxc-1
+  ip address 10.0.128.1 255.255.128.0
+  ip ospf cost 1
+  duplex full
+  speed auto
+  no shutdown
+!
+!
+!
+router ospf 1
+  network 192.168.0.1 0.0.0.0 area 0
+  log-adjacency-changes
+  passive-interface Loopback0
+  network 10.0.0.0 0.0.127.255 area 0
+  network 10.0.128.0 0.0.127.255 area 0
+!
+!
+end
+</entry>
+            <entry type="string" key="AutoNetkit.mgmt_ip"></entry>
+        </extensions>
+        <interface name="GigabitEthernet0/1" id="0"/>
+        <interface name="GigabitEthernet0/2" id="1"/>
+        <interface netPrefixLenV4="17" ipv4="10.0.0.1" name="GigabitEthernet0/3" id="2"/>
+        <interface netPrefixLenV4="17" ipv4="10.0.128.1" name="GigabitEthernet0/4" id="3"/>
+    </node>
+    <node location="202,224" subtype="FLAT" type="ASSET" name="flat-1">
+        <interface name="link0" id="0"/>
+    </node>
+    <node location="273,102" subtype="SNAT" type="ASSET" name="snat-1">
+        <interface name="link0" id="0"/>
+    </node>
+    <node location="718,234" subtype="lxc-iperf" type="SIMPLE" name="lxc-iperf-1">
+        <extensions>
+            <entry type="string" key="config"> </entry>
+        </extensions>
+        <interface netPrefixLenV4="17" ipv4="10.0.0.2" name="eth1" id="0"/>
+    </node>
+    <node location="547,337" subtype="lxc" type="SIMPLE" name="lxc-1">
+        <extensions>
+            <entry type="string" key="config">#cloud-config
+bootcmd:
+- ln -s -t /etc/rc.d /etc/rc.local
+hostname: lxc-1
+manage_etc_hosts: true
+runcmd:
+- systemctl start rc-local
+- sed -i '/^\s*PasswordAuthentication\s\+no/d' /etc/ssh/sshd_config
+- echo &quot;UseDNS no&quot; &gt;&gt; /etc/ssh/sshd_config
+- service ssh restart
+- service sshd restart
+users:
+- default
+- gecos: User configured by VIRL Configuration Engine 0.18.10
+  lock-passwd: false
+  name: cisco
+  plain-text-passwd: cisco
+  shell: /bin/bash
+  ssh-authorized-keys:
+  - VIRL-USER-SSH-PUBLIC-KEY
+  sudo: ALL=(ALL) ALL
+write_files:
+- path: /etc/systemd/system/dhclient@.service
+  content: |
+    [Unit]
+    Description=Run dhclient on %i interface
+    After=network.target
+    [Service]
+    Type=oneshot
+    ExecStart=/sbin/dhclient %i -pf /var/run/dhclient.%i.pid -lf /var/lib/dhclient/dhclient.%i.lease
+    RemainAfterExit=yes
+  owner: root:root
+  permissions: '0644'
+- path: /etc/rc.local
+  owner: root:root
+  permissions: '0755'
+  content: |-
+    #!/bin/sh -e
+    ifconfig eth1 up 10.0.128.2 netmask 255.255.128.0
+    route add -host 192.168.0.1 gw 10.0.128.1 dev eth1
+    route add -net 10.0.0.0/16 gw 10.0.128.1 dev eth1
+    exit 0
+</entry>
+        </extensions>
+        <interface netPrefixLenV4="17" ipv4="10.0.128.2" name="eth1" id="0"/>
+    </node>
+    <connection src="/virl:topology/virl:node[1]/virl:interface[1]" dst="/virl:topology/virl:node[2]/virl:interface[1]"/>
+    <connection src="/virl:topology/virl:node[3]/virl:interface[1]" dst="/virl:topology/virl:node[1]/virl:interface[2]"/>
+    <connection src="/virl:topology/virl:node[1]/virl:interface[3]" dst="/virl:topology/virl:node[4]/virl:interface[1]"/>
+    <connection src="/virl:topology/virl:node[5]/virl:interface[1]" dst="/virl:topology/virl:node[1]/virl:interface[4]"/>
+</topology>
