@@ -2,7 +2,7 @@
 <topology xmlns="http://www.cisco.com/VIRL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" schemaVersion="0.9" xsi:schemaLocation="http://www.cisco.com/VIRL https://raw.github.com/CiscoVIRL/schema/v0.9/virl.xsd">
     <node name="iosv-1" type="SIMPLE" subtype="IOSv" location="344,187" ipv4="192.168.0.2">
         <extensions>
-            <entry key="config" type="string">! IOS Config generated on 2016-04-08 14:20
+            <entry key="config" type="string">! IOS Config generated on 2016-04-08 14:40
 ! by autonetkit_0.21.4
 !
 hostname iosv-1
@@ -112,7 +112,7 @@ end
     </node>
     <node name="iosv-2" type="SIMPLE" subtype="IOSv" location="753,199" ipv4="192.168.0.3">
         <extensions>
-            <entry key="config" type="string">! IOS Config generated on 2016-04-08 14:20
+            <entry key="config" type="string">! IOS Config generated on 2016-04-08 14:40
 ! by autonetkit_0.21.4
 !
 hostname iosv-2
@@ -260,6 +260,9 @@ write_files:
   permissions: '0755'
   content: |-
     #!/bin/sh
+    ifconfig eth2 up
+    dhclient -nw eth2
+    systemctl start dhclient@eth2.service
     ifconfig eth1 up 10.0.0.6 netmask 255.255.255.252
     route add -net 10.0.0.4/30 gw 10.0.0.5 dev eth1
     route add -net 10.0.0.8/29 gw 10.0.0.5 dev eth1
@@ -268,6 +271,7 @@ write_files:
 </entry>
         </extensions>
         <interface id="0" name="eth1" ipv4="10.0.0.6" netPrefixLenV4="30"/>
+        <interface id="1" name="eth2"/>
     </node>
     <node name="lxc-iperf-2" type="SIMPLE" subtype="lxc-iperf" location="770,385">
         <extensions>
@@ -309,6 +313,9 @@ write_files:
   permissions: '0755'
   content: |-
     #!/bin/sh
+    ifconfig eth2 up
+    dhclient -nw eth2
+    systemctl start dhclient@eth2.service
     ifconfig eth1 up 10.0.0.14 netmask 255.255.255.252
     route add -net 10.0.0.4/30 gw 10.0.0.13 dev eth1
     route add -net 10.0.0.8/29 gw 10.0.0.13 dev eth1
@@ -317,8 +324,17 @@ write_files:
 </entry>
         </extensions>
         <interface id="0" name="eth1" ipv4="10.0.0.14" netPrefixLenV4="30"/>
+        <interface id="1" name="eth2"/>
+    </node>
+    <node name="flat-1" type="ASSET" subtype="FLAT" location="245,397">
+        <interface id="0" name="link0"/>
+    </node>
+    <node name="flat-2" type="ASSET" subtype="FLAT" location="928,413">
+        <interface id="0" name="link0"/>
     </node>
     <connection dst="/virl:topology/virl:node[2]/virl:interface[1]" src="/virl:topology/virl:node[1]/virl:interface[1]"/>
     <connection dst="/virl:topology/virl:node[1]/virl:interface[2]" src="/virl:topology/virl:node[3]/virl:interface[1]"/>
     <connection dst="/virl:topology/virl:node[2]/virl:interface[2]" src="/virl:topology/virl:node[4]/virl:interface[1]"/>
+    <connection dst="/virl:topology/virl:node[3]/virl:interface[2]" src="/virl:topology/virl:node[5]/virl:interface[1]"/>
+    <connection dst="/virl:topology/virl:node[4]/virl:interface[2]" src="/virl:topology/virl:node[6]/virl:interface[1]"/>
 </topology>
